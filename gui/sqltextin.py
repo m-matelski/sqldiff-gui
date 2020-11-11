@@ -1,14 +1,114 @@
 import tkinter as tk
 from tkinter.font import Font
 from tkinter import ttk
-from tkinter.scrolledtext import ScrolledText
+# from tkinter.scrolledtext import ScrolledText
 
 import sqlparse
 
 from gui.custom_widgets import ModifiedTextMixin
 
+
+
+
+
+# Based on original tk.ScrolledText source code
+class ScrolledText(tk.Text):
+    def __init__(self, master=None, **kw):
+        self.frame = tk.Frame(master)
+
+        self.vbar = tk.Scrollbar(self.frame)
+        self.vbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.hbar = tk.Scrollbar(self.frame, orient=tk.HORIZONTAL)
+        self.hbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        kw.update({'yscrollcommand': self.vbar.set})
+        kw.update({'xscrollcommand': self.hbar.set})
+
+
+        tk.Text.__init__(self, self.frame, **kw)
+
+        self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.vbar['command'] = self.yview
+        self.hbar['command'] = self.xview
+
+        # Copy geometry methods of self.frame without overriding Text
+        # methods -- hack!
+        text_meths = vars(tk.Text).keys()
+        methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
+        methods = methods.difference(text_meths)
+
+        for m in methods:
+            if m[0] != '_' and m != 'config' and m != 'configure':
+                setattr(self, m, getattr(self.frame, m))
+
+    def __str__(self):
+        return str(self.frame)
+
+
+
+
+class ScrolledText2(tk.Text):
+    def __init__(self, master=None, **kw):
+        self.frame = tk.Frame(master)
+
+        self.vbar = tk.Scrollbar(self.frame)
+        self.vbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.hbar = tk.Scrollbar(self.frame, orient=tk.HORIZONTAL)
+        self.hbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        kw.update({'yscrollcommand': self._yscrollcommand})
+        kw.update({'xscrollcommand': self._xscrollcommand})
+
+
+        tk.Text.__init__(self, self.frame, **kw)
+
+        self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.vbar['command'] = self.yview
+        self.hbar['command'] = self.xview
+
+        # Copy geometry methods of self.frame without overriding Text
+        # methods -- hack!
+        text_meths = vars(tk.Text).keys()
+        methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
+        methods = methods.difference(text_meths)
+
+        for m in methods:
+            if m[0] != '_' and m != 'config' and m != 'configure':
+                setattr(self, m, getattr(self.frame, m))
+
+        self.on_yscrollcommand = lambda x, y: None
+        self.on_xscrollcommand = lambda x, y: None
+
+
+    def _yscrollcommand(self, first, last):
+        self.vbar.set(first, last)
+        self.on_yscrollcommand(first, last)
+
+    def _xscrollcommand(self, first, last):
+        self.hbar.set(first, last)
+        self.on_xscrollcommand(first, last)
+
+    # def on_yscrollcommand(self, first, last):
+    #     print(f'on_yscrollcommand ({first}, {last})')
+    #
+    # def on_xscrollcommand(self, first, last):
+    #     print(f'on_xscrollcommand ({first}, {last})')
+
+
+
+
+    def __str__(self):
+        return str(self.frame)
+
+
+
+
 # former tk.Text
-class SqlText(ScrolledText, ModifiedTextMixin):
+class SqlText(ScrolledText2, ModifiedTextMixin):
     """
     Custom Text Widget with set style for highlighting sql syntax
     """
@@ -39,6 +139,7 @@ class SqlText(ScrolledText, ModifiedTextMixin):
         self.tag_configure(self.TAG_NUMBER, font=self.font, foreground='#EE3388')
         self.tag_configure(self.TAG_COMMENT, font=self.font_comment, foreground='#AAAAAA')
         self.tag_configure(self.TAG_FUNCTION, font=self.font, foreground='#CC6633')
+
 
 
     def bind_events(self):

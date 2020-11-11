@@ -38,11 +38,11 @@ class SqlInputPanel(tk.Frame):
 
         # Adding buttons to top left frame
         self.ic_add_connection = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/add_connection.png'))
-        self.btn_add_connection = ttk.Button(self.top_right_frame, image= self.ic_add_connection, command=self.open_connection_manager)
+        # self.btn_add_connection = ttk.Button(self.top_right_frame, image= self.ic_add_connection, command=self.open_connection_manager)
         self.combo_connection = ttk.Combobox(self.top_right_frame, state='readonly', values=['Postgres1', 'connection2'])
         self.combo_connection.bind('<<ComboboxSelected>>', self.combo_connection_clear_selection)
 
-        self.sql_text = SqlText(self, height=30, width=10)
+        self.sql_text = SqlText(self, height=30, width=10, wrap='none')
 
         # Positioning using Grid System
         self.top_frame.grid(column=0, row=0, sticky='nwes')
@@ -52,7 +52,7 @@ class SqlInputPanel(tk.Frame):
 
         # Setg position of top right bar components
         self.combo_connection.grid(column=1, row=0, sticky='', padx=2, pady=2)
-        self.btn_add_connection.grid(column=0, row=0, padx=2, pady=2)
+        # self.btn_add_connection.grid(column=0, row=0, padx=2, pady=2)
 
         # Setting weights - such a big difference allow to keep top bar in constant size while SqlText is scaling
         self.grid_rowconfigure(0, weight=1)

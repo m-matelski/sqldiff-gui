@@ -3,7 +3,7 @@ from tkinter import ttk
 
 import tkinter as tk
 
-from appdata.connections import read_connection_data, save_connection_data
+from appdata.connections import read_connection_data, save_connection_data, connection_drivers
 
 
 def set_text(entry, text):
@@ -14,7 +14,7 @@ def set_text(entry, text):
 
 class ConnectionManagerWindow(tk.Toplevel):
 
-    DRIVERS = ('psycopg2', 'teradatasql')
+    DRIVERS = tuple(connection_drivers.keys())
 
     def __init__(self, *args, **kwargs):
         # Window
@@ -152,16 +152,19 @@ class ConnectionManagerWindow(tk.Toplevel):
         self.disable_form()
 
     def on_connection_listbox_select(self, event):
+        curselection = self.con_listbox.curselection()
+        if not curselection:
+            return
+
         prev = self.ent_name.get()
-        # if not prev:
-        #     return
 
         self.enable_form()
         if prev != self.selected and not prev == '':
             self.rename_connection(self.selected, prev)
 
         self.read_form()
-        self.selected = self.con_listbox.get(self.con_listbox.curselection())
+
+        self.selected = self.con_listbox.get(curselection)
         print(f'selected entry {prev=}, {self.selected=}')
         self.populate_form(self.connection_data[self.selected])
 
