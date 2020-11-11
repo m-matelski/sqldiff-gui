@@ -23,7 +23,18 @@ def save_connection_data(connection_dict):
         f.write(json.dumps(connection_dict))
 
 
+def connect_psycopg2(params):
+    connection_params = {k: v for k, v in params.items() if k not in ('name', 'driver') and v}
+    return psycopg2.connect(**connection_params)
+
+def connect_teradatasql(params):
+    connection_params = {k: v for k, v in params.items() if k not in ('name', 'driver') and v}
+    return teradatasql.connect(**connection_params)
+
+
+
+
 connection_drivers = {
-    'psycopg2': psycopg2.connect,
-    'teradatasql': teradatasql.connect
+    'psycopg2': connect_psycopg2,
+    'teradatasql': connect_teradatasql
 }

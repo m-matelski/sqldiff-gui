@@ -65,7 +65,8 @@ class ConnectionManagerWindow(tk.Toplevel):
         self.lbl_port = ttk.Label(self.details_frame, text='Port:').grid(column=0, row=2, sticky='e', padx=lbl_padx, pady=lbl_pady)
         self.lbl_user = ttk.Label(self.details_frame, text='User:').grid(column=0, row=3, sticky='e', padx=lbl_padx, pady=lbl_pady)
         self.lbl_pass = ttk.Label(self.details_frame, text='Password:').grid(column=0, row=4, sticky='e', padx=lbl_padx, pady=lbl_pady)
-        self.lbl_db = ttk.Label(self.details_frame, text='Db:').grid(column=0, row=5, sticky='e', padx=lbl_padx, pady=lbl_pady)
+        self.lbl_database = ttk.Label(self.details_frame, text='Database:').grid(column=0, row=5, sticky='e', padx=lbl_padx, pady=lbl_pady)
+        self.lbl_driver = ttk.Label(self.details_frame, text='Driver:').grid(column=0, row=6, sticky='e', padx=lbl_padx, pady=lbl_pady)
 
         # Form Entires
         self.sv_entry = tk.StringVar()
@@ -73,6 +74,7 @@ class ConnectionManagerWindow(tk.Toplevel):
         self.sv_port = tk.StringVar()
         self.sv_user = tk.StringVar()
         self.sv_pass = tk.StringVar()
+        self.sv_database = tk.StringVar()
 
         ent_padx = 10
         self.ent_name = ttk.Entry(self.details_frame, textvariable=self.sv_entry)
@@ -87,12 +89,14 @@ class ConnectionManagerWindow(tk.Toplevel):
         self.ent_user.grid(column=1, row=3, sticky='ew', padx=ent_padx)
         self.ent_pass = ttk.Entry(self.details_frame, textvariable=self.sv_pass, show='*')
         self.ent_pass.grid(column=1, row=4, sticky='ew', padx=ent_padx)
+        self.ent_database = ttk.Entry(self.details_frame, textvariable=self.sv_database)
+        self.ent_database.grid(column=1, row=5, sticky='ew', padx=ent_padx)
 
-        self.combo_db = ttk.Combobox(self.details_frame)
-        self.combo_db['values'] = self.DRIVERS
-        self.combo_db.state(['readonly'])
-        self.combo_db.bind('<<ComboboxSelected>>', self.combo_db_clear_selection)
-        self.combo_db.grid(column=1, row=5, sticky='ew', padx=ent_padx)
+        self.combo_db_driver = ttk.Combobox(self.details_frame)
+        self.combo_db_driver['values'] = self.DRIVERS
+        self.combo_db_driver.state(['readonly'])
+        self.combo_db_driver.bind('<<ComboboxSelected>>', self.combo_db_clear_selection)
+        self.combo_db_driver.grid(column=1, row=6, sticky='ew', padx=ent_padx)
 
         # Window OK Cancel Buttons
         self.win_buttons_frame = tk.Frame(self)
@@ -108,8 +112,9 @@ class ConnectionManagerWindow(tk.Toplevel):
             self.ent_host,
             self.ent_port,
             self.ent_user,
+            self.ent_database,
             self.ent_pass,
-            self.combo_db
+            self.combo_db_driver
         )
 
         self.read_connection_data()
@@ -185,7 +190,7 @@ class ConnectionManagerWindow(tk.Toplevel):
         pass
 
     def combo_db_clear_selection(self, event=None):
-        self.combo_db.selection_clear()
+        self.combo_db_driver.selection_clear()
 
     def submit_connections(self):
         self.read_form()
@@ -205,15 +210,16 @@ class ConnectionManagerWindow(tk.Toplevel):
     def enable_form(self):
         for f in self.form_inputs:
             f.config(state='enable')
-        self.combo_db.config(state='readonly')
+        self.combo_db_driver.config(state='readonly')
 
     def populate_form(self, connection_entry):
         set_text(self.ent_name, connection_entry['name'])
         set_text(self.ent_host, connection_entry.get('host', ''))
         set_text(self.ent_port, connection_entry.get('port', ''))
         set_text(self.ent_user, connection_entry.get('user', ''))
-        set_text(self.ent_pass, connection_entry.get('pass', ''))
-        self.combo_db.set(connection_entry.get('db', ''))
+        set_text(self.ent_pass, connection_entry.get('password', ''))
+        set_text(self.ent_database, connection_entry.get('database', ''))
+        self.combo_db_driver.set(connection_entry.get('driver', ''))
 
     def read_form(self):
         con_name = self.ent_name.get()
@@ -223,8 +229,9 @@ class ConnectionManagerWindow(tk.Toplevel):
             connection_entry['host'] = self.ent_host.get()
             connection_entry['port'] = self.ent_port.get()
             connection_entry['user'] = self.ent_user.get()
-            connection_entry['pass'] = self.ent_pass.get()
-            connection_entry['db'] = self.combo_db.get()
+            connection_entry['password'] = self.ent_pass.get()
+            connection_entry['database'] = self.ent_database.get()
+            connection_entry['driver'] = self.combo_db_driver.get()
 
     def clear_form(self):
         for f in self.form_inputs:
