@@ -2,4 +2,4 @@ sqlparse>=0.4.1
 appdirs==1.4.4
 teradatasql==17.0.0.6
 psycopg2==2.8.6
-sqldiff==0.0.3
+sqldiff==0.0.4
