@@ -2,6 +2,7 @@ import os
 from tkinter import ttk
 
 import tkinter as tk
+from tkinter.messagebox import showerror, showinfo
 
 from appdata.connections import read_connection_data, save_connection_data, connection_drivers
 
@@ -16,7 +17,10 @@ class ConnectionManagerWindow(tk.Toplevel):
 
     DRIVERS = tuple(connection_drivers.keys())
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, submit_callback, *args, **kwargs):
+
+        self.submit_callback = submit_callback
+
         # Window
         super().__init__(*args, **kwargs)
         self.grid_rowconfigure(0, weight=1)
@@ -79,6 +83,7 @@ class ConnectionManagerWindow(tk.Toplevel):
         ent_padx = 10
         self.ent_name = ttk.Entry(self.details_frame, textvariable=self.sv_entry)
         self.ent_name.grid(column=1, row=0, sticky='ew',padx=ent_padx)
+        self.ent_name.bind('<FocusIn>', self.on_name_focus_in)
         self.ent_name.bind('<FocusOut>', self.on_name_focus_out)
 
         self.ent_host = ttk.Entry(self.details_frame, textvariable=self.sv_host)
@@ -103,9 +108,12 @@ class ConnectionManagerWindow(tk.Toplevel):
         self.win_buttons_frame.grid(column=1, row=1, sticky='e')
         self.win_buttons_frame.grid_rowconfigure(0, weight=1)
         self.btn_ok = ttk.Button(self.win_buttons_frame, text='Ok', command=self.submit_connections)
-        self.btn_ok.grid(column=1, row=0, sticky='e', padx=2)
+        self.btn_ok.grid(column=2, row=0, sticky='e', padx=2)
         self.btn_cancel = ttk.Button(self.win_buttons_frame, text='Cancel', command=self.cancel_connections)
-        self.btn_cancel.grid(column=0, row=0, sticky='e', padx=5)
+        self.btn_cancel.grid(column=1, row=0, sticky='e', padx=5)
+        self.btn_cancel = ttk.Button(self.win_buttons_frame, text='Test Connection', command=self.test_connection)
+        self.btn_cancel.grid(column=0, row=0, sticky='w', padx=5)
+
 
         self.form_inputs = (
             self.ent_name,
@@ -119,6 +127,7 @@ class ConnectionManagerWindow(tk.Toplevel):
 
         self.read_connection_data()
         self.selected = ''
+        self.name_focus_in = ''
         self.disable_form()
 
 
@@ -156,7 +165,21 @@ class ConnectionManagerWindow(tk.Toplevel):
         self.clear_form()
         self.disable_form()
 
+    def test_connection(self):
+        self.read_form()
+        selected = self.con_listbox.get(self.con_listbox.curselection())
+        con_data = self.connection_data[selected]
+        try:
+            con_function = connection_drivers[con_data['driver']]
+            with con_function(con_data) as con:
+                showinfo('Success!', 'Connection Test Success!')
+        except KeyError as ke:
+            showerror('Error!', 'Choose driver!')
+        except Exception as e:
+            showerror('Error!', f'Connection Test Failed! - "{e}"')
+
     def on_connection_listbox_select(self, event):
+        print('on_connection_listbox_select')
         curselection = self.con_listbox.curselection()
         if not curselection:
             return
@@ -164,13 +187,24 @@ class ConnectionManagerWindow(tk.Toplevel):
         prev = self.ent_name.get()
 
         self.enable_form()
-        if prev != self.selected and not prev == '':
-            self.rename_connection(self.selected, prev)
+        # if prev != self.selected and not prev == '':
+        #     self.rename_connection(self.selected, prev)
 
-        self.read_form()
+        # name_focus_out = self.ent_name.get()
+        # if self.name_focus_in!=name_focus_out and self.name_focus_in!='':
+        #     self.rename_connection(self.name_focus_in, name_focus_out)
 
+        # if prev != self.selected and not prev == '':
+        #     self.rename_connection(self.selected, prev)
+
+        # self.con_listbox.focus_set()
+        # print('after focus set')
+        self.on_name_focus_out(None)
+        self.name_focus_in = self.ent_name.get()
         self.selected = self.con_listbox.get(curselection)
-        print(f'selected entry {prev=}, {self.selected=}')
+        # self.read_form(self.selected)
+        self.read_form()
+        # print(f'selected entry {prev=}, {self.selected=}')
         self.populate_form(self.connection_data[self.selected])
 
     def rename_connection(self, old, new):
@@ -184,6 +218,7 @@ class ConnectionManagerWindow(tk.Toplevel):
         idx = self.con_choices.index(old)
         self.con_choices[idx] = new
         self.con_choicesvar.set(self.con_choices)
+        print('renamed')
 
 
     def on_connection_listbox_double(self, event):
@@ -195,13 +230,21 @@ class ConnectionManagerWindow(tk.Toplevel):
     def submit_connections(self):
         self.read_form()
         self.save_connection_data()
+        self.submit_callback()
         self.destroy()
 
     def cancel_connections(self):
         self.destroy()
 
+    def on_name_focus_in(self, event):
+        print('on_name_focus_in')
+        self.name_focus_in = self.ent_name.get()
+
     def on_name_focus_out(self, event):
-        print('focusout name')
+        print('on_name_focus_out')
+        name_focus_out = self.ent_name.get()
+        if self.name_focus_in != name_focus_out and name_focus_out not in self.connection_data:
+            self.rename_connection(self.name_focus_in, name_focus_out)
 
     def disable_form(self):
         for f in self.form_inputs:
@@ -221,8 +264,11 @@ class ConnectionManagerWindow(tk.Toplevel):
         set_text(self.ent_database, connection_entry.get('database', ''))
         self.combo_db_driver.set(connection_entry.get('driver', ''))
 
-    def read_form(self):
-        con_name = self.ent_name.get()
+    def read_form(self, name=None):
+        if not name:
+            con_name = self.ent_name.get()
+        else:
+            con_name = name
         if con_name:
             connection_entry = self.connection_data[con_name]
             connection_entry['name'] = con_name

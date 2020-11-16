@@ -33,7 +33,6 @@ class SqlCompareDualTextWindow(tk.Tk):
         ## Connections
         self.connection_menu = tk.Menu(self.menu, tearoff=0)
         self.connection_menu.add_command(label='Manage Connections', command=self.manage_connections)
-        self.connection_menu.add_command(label='Refresh Connections', command=self.refresh_connections)
         self.menu.add_cascade(label='Connections', menu=self.connection_menu)
         ## SQL
         self.sql_menu = tk.Menu(self.menu, tearoff=0)
@@ -78,9 +77,14 @@ class SqlCompareDualTextWindow(tk.Tk):
     def manage_connections(self):
         self.open_connection_manager()
 
+    # def connection_manager_close_callback(self):
+    #     print('closiongconn')
+    #     self.connection_manager_window.destroy()
+
     def open_connection_manager(self):
-        connection_manager = ConnectionManagerWindow()
-        connection_manager.grab_set()
+        self.connection_manager_window = ConnectionManagerWindow(submit_callback=self.refresh_connections)
+        # self.connection_manager_window.protocol('WM_DELETE_WINDOW', self.connection_manager_close_callback)
+        self.connection_manager_window.grab_set()
 
     def open_sql_diff_result(self, result):
         sql_diff_result = SqlDiffResult(comparison_result=result)
@@ -105,21 +109,31 @@ class SqlCompareDualTextWindow(tk.Tk):
         src_query = self.sql_panel_source.sql_text.get_text()
         tgt_query = self.sql_panel_target.sql_text.get_text()
 
-        src_connection_driver = connection_drivers[src_connection_data['driver']]
-        tgt_connection_driver = connection_drivers[tgt_connection_data['driver']]
+        try:
+            src_connection_driver = connection_drivers[src_connection_data['driver']]
+        except KeyError:
+            showerror('Error', f"Invalid connection definition for {src_connection_data['name']}")
+            return
+
+        try:
+            tgt_connection_driver = connection_drivers[tgt_connection_data['driver']]
+        except KeyError:
+            showerror('Error', f"Invalid connection definition for {tgt_connection_data['name']}")
+            return
 
         # c = src_connection_driver(src_connection_data)
 
-        # try:
-        with src_connection_driver(src_connection_data) as src_connection, \
-             tgt_connection_driver(tgt_connection_data) as tgt_connection:
+        try:
+            with src_connection_driver(src_connection_data) as src_connection, \
+                 tgt_connection_driver(tgt_connection_data) as tgt_connection:
 
-            result = compare(
-                source_connection=src_connection,
-                source_query=src_query,
-                target_connection=tgt_connection,
-                target_query=tgt_query)
-        # except Exception as e:
-        #     showerror('Error', f'Connection Error: "{e}"')
+                result = compare(
+                    source_connection=src_connection,
+                    source_query=src_query,
+                    target_connection=tgt_connection,
+                    target_query=tgt_query)
+        except Exception as e:
+            showerror('Error', f'Comp Error: "{e}"')
+            return
 
         self.open_sql_diff_result(result)
