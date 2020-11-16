@@ -37,7 +37,7 @@ class SqlInputPanel(tk.Frame):
         # self.btn_3.grid(row=0, column=2, sticky='')
 
         # Adding buttons to top left frame
-        self.ic_add_connection = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/add_connection.png'))
+        # self.ic_add_connection = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/add_connection.png'))
         # self.btn_add_connection = ttk.Button(self.top_right_frame, image= self.ic_add_connection, command=self.open_connection_manager)
         self.combo_connection = ttk.Combobox(self.top_right_frame, state='readonly', values=['Postgres1', 'connection2'])
         self.combo_connection.bind('<<ComboboxSelected>>', self.combo_connection_clear_selection)

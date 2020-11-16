@@ -50,9 +50,10 @@ class SqlCompareDualTextWindow(tk.Tk):
         self.frame_middle = tk.Frame(self)
 
         # Optional buttons for middle frame
-        self.ic = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/switch.png'))
-        self.ic2 = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/database.png'))
-        self.btn_1 = tk.Button(self.frame_middle, image=self.ic)
+        # TODO add to pyinstaller
+        # self.ic = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/switch.png'))
+        # self.ic2 = tk.PhotoImage(file=os.path.join('gui/resources/icons/16x16/database.png'))
+        # self.btn_1 = tk.Button(self.frame_middle, image=self.ic)
 
         # Spacing two panels and space frame in three grid columns
         self.top_frame.grid(column=0, columnspan=3, row=0, sticky='nwes', padx=4, pady=4)
@@ -61,7 +62,7 @@ class SqlCompareDualTextWindow(tk.Tk):
         self.frame_middle.grid(column=1, row=1, sticky='')
 
         # Optional components (such as buttons) in middle frame
-        self.btn_1.grid(column=0, row= 0, sticky='') # button in
+        # self.btn_1.grid(column=0, row= 0, sticky='') # button in
 
         # Setting Widgets weight
         self.grid_rowconfigure(1, weight=1) # weight not initialized so set to 1
